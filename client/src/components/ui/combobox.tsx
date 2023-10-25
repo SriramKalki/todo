@@ -1,22 +1,24 @@
-"use client"
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
 
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
+
+interface ComboboxDemoProps {
+  onChange: (selectedValue: string) => void;
+}
 
 const types = [
   {
@@ -30,15 +32,19 @@ const types = [
   {
     value: "alphabet",
     label: "Alphabet",
-  }
-]
+  },
+];
 
-export function ComboboxDemo() {
-  const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+export function ComboboxDemo({ onChange }: ComboboxDemoProps) {
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState("");
 
-  function getValue() {
-    return value
+  function selectValue(selectedValue: string) {
+    setValue(selectedValue === value ? "" : selectedValue);
+    setOpen(false);
+
+    // Call the onChange prop with the selected value
+    onChange(selectedValue === value ? "" : selectedValue);
   }
 
   return (
@@ -65,10 +71,7 @@ export function ComboboxDemo() {
               <CommandItem
                 key={type.value}
                 value={type.value}
-                onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue)
-                  setOpen(false)
-                }}
+                onSelect={selectValue} // Use the selectValue function
               >
                 <Check
                   className={cn(
@@ -83,5 +86,5 @@ export function ComboboxDemo() {
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

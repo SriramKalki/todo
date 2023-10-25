@@ -1,10 +1,11 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser, auth } from "@clerk/nextjs";
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { format } from "date-fns";
 import { Inter } from "next/font/google";
+import { Line } from "react-chartjs-2";
 import { Check, Edit, Trash } from "lucide-react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Button } from "@/components/ui/button";
@@ -23,12 +24,12 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxDemo } from "@/components/ui/combobox";
-
+import LineGraph from "@/components/LineGraph"
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const inter = Inter({ subsets: ["latin"] });
 
-const tasksApi = 'http://localhost:5500/api/tasks'; // Replace with the correct API route
+const tasksApi = 'https://backend-11.hop.sh/api/tasks'; // Replace with the correct API route
 
 interface Task {
   name: string;
@@ -41,6 +42,11 @@ interface Task {
 
 export default function Home() {
   const { isLoaded, isSignedIn, user } = useUser();
+
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState<Task>({
     name: '',
@@ -50,20 +56,19 @@ export default function Home() {
     completedAt: new Date(),
     userId: user?.primaryEmailAddressId ? user?.primaryEmailAddressId : ""
   });
+
   const [sortOption, setSortOption] = useState(""); // State to store the sorting option
-
-
 
   // State to manage the edited task name
   const [updatedTaskName, setUpdatedTaskName] = useState<string>(''); // Initialize as an empty string
-
+  const [updatedDate, setUpdatedDate] = useState<Date>();
   // State to keep track of the editing task
   const [editingTaskNumber, setEditingTaskNumber] = useState<number | null>(null);
 
   const fetchTasks = async () => {
     try {
       const response = await axios.get(tasksApi, {
-        params: { sort: sortOption },
+        params: { sort: sortOption},
       });
       setTasks(response.data);
     } catch (error) {
@@ -100,11 +105,16 @@ export default function Home() {
   };
 
   // Function to handle changes in the sorting dropdown
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortOption(e.target.value);
-    console.log(sortOption);
-    fetchTasks();
-  };
+  
+    const handleSortChange = (newSort: string) => {
+      console.log(newSort);
+      setSortOption(newSort);
+    
+      console.log(sortOption);
+      fetchTasks();
+    };
+    
+  
 
   const handleFormSubmit = async () => {
     try {
@@ -112,7 +122,7 @@ export default function Home() {
       // Send a POST request to create a new task
       console.log(newTask.userId)
       newTask.number = data.data.length + 1;
-
+      console.log(user.id)
       const response = await axios.post(tasksApi, newTask);
       fetchTasks(); // Refresh the task list after creating the task
       setNewTask({
@@ -121,7 +131,8 @@ export default function Home() {
         dueDate: new Date(),
         completed: false,
         completedAt: new Date(),
-        userId: user?.primaryEmailAddressId ? user?.primaryEmailAddressId : ""
+        // @ts-ignore
+        userId: user.id
       });
     } catch (error) {
       console.error('Error creating a task:', error);
@@ -134,7 +145,7 @@ export default function Home() {
       for (const element of response.data) {
         if (element.number === taskNumber) {
           console.log(`deleting ${element._id}`);
-          const res2 = await axios.delete(`http://localhost:5500/api/tasks/${element._id}`);
+          const res2 = await axios.delete(`https://backend-11.hop.sh/api/tasks/${element._id}`);
           console.log("done")
           break;
         }
@@ -154,7 +165,7 @@ export default function Home() {
       for (const element of response.data) {
         if (element.number === taskNumber) {
 
-          const res2 = await axios.put(`http://localhost:5500/api/tasks/${element._id}`, {
+          const res2 = await axios.put(`https://backend-11.hop.sh/api/tasks/${element._id}`, {
             completed: taskCompleted,
             completedAt: new Date()
           });
@@ -184,8 +195,9 @@ export default function Home() {
       for (const element of response.data) {
         if (element.number === taskNumber) {
           console.log(`deleting ${element._id}`);
-          const res2 = await axios.put(`http://localhost:5500/api/tasks/${element._id}`, {
+          const res2 = await axios.put(`https://backend-11.hop.sh/api/tasks/${element._id}`, {
             name: updatedTaskName,
+            dueDate: updatedDate,
           });
           console.log("done")
           break;
@@ -224,10 +236,10 @@ export default function Home() {
       <div className="flex-1">
 
         <h1 className="scroll-m-20 text-2xl font-semibold tracking-tight py-4">
-          <span className="wave me-2">👋</span> Hey there, {user?.firstName}
+          <span className="wave me-2">👋</span> Hey there, {user?.firstName}! We have some work TODO!
         </h1>
         <div className="mx-auto">
-          
+
         </div>
         <div className="grid lg:grid-cols-6 sm:grid-cols-2 space-x-2">
           <div className="col-span-3">
@@ -247,11 +259,11 @@ export default function Home() {
           </div>
           <div className="col-span-1 flex">
             <div className="ms-auto">
-            <Button variant={"outline"} onClick={handleFormSubmit}>
-              <Check className="w-4 h-4 me-3" />
-              Generate Task
-            </Button>
-              </div>
+              <Button variant={"outline"} onClick={handleFormSubmit}>
+                <Check className="w-4 h-4 me-3" />
+                Generate Task
+              </Button>
+            </div>
           </div>
         </div>
         <div className="py-4">
@@ -288,7 +300,20 @@ export default function Home() {
                       task.name
                     )}
                   </TableCell>
-                  <TableCell>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No Due Date!"}</TableCell>
+                  <TableCell>
+
+                    {editingTaskNumber === task.number ? (
+                      // Render an input field in editing mode
+                      <DatePickerDemo
+                        onChange={(newDate: Date) => {
+                          setUpdatedDate(newDate)
+                        }}
+                      ></DatePickerDemo>
+                    ) : (
+                      // Render the task name
+                      <p>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No Due Date!"}</p>
+                    )}
+                  </TableCell>
                   <TableCell className="flex">
                     <div className="space-x-4 ms-auto flex">
                       {editingTaskNumber === task.number ? (
@@ -311,15 +336,24 @@ export default function Home() {
             </TableBody>
           </Table>
           <div className="flex space-x-2 items-center py-[60px] grid lg:grid-cols-2 sm:grid-cols-1">
-            <ComboboxDemo />
+            <ComboboxDemo onChange={(newSort: string) => {
+      
+              handleSortChange(newSort)
+            }} />
 
             <div className="flex">
               <div className="ms-auto">
-                <Button variant="ghost" onClick={handleGenerateReport}>
+                <Button variant={"outline"} onClick={handleGenerateReport}>
                   Generate Daily Report
                 </Button>
               </div>
             </div>
+
+          </div>
+          <div className="items-center">
+            {tasks.length === 0 ? (<h2>Start completing tasks to see a graph!</h2>) :
+              <LineGraph labels={generateData(tasks).labels.reverse()} dataset1={generateData(tasks).completedTaskData} dataset2={generateData(tasks).onTimeTaskData} />
+            }
           </div>
         </div>
       </div>
@@ -328,6 +362,40 @@ export default function Home() {
   );
 }
 
+function generateData(tasks: Task[]) {
+  const currentDate = new Date();
+  const past30Days = new Date(new Date().setDate(currentDate.getDate() - 30));
+
+  const completedTasks = tasks.filter(
+    (task) => task.completed && new Date(task.completedAt) > past30Days
+  );
+
+  const completedTaskData = new Array(30).fill(0);
+  const onTimeTaskData = new Array(30).fill(0);
+  for (const task of completedTasks) {
+    const completionDate = task.completedAt;
+    const dueDate = task.dueDate;
+    const daysDifference = Math.floor((new Date(completionDate).getTime() - new Date(past30Days).getTime()) / (1000 * 60 * 60 * 24)); // Calculate the difference in days
+
+    if (daysDifference >= 0 && daysDifference < 30) {
+      // Check if the completion date is within the last 30 days
+      completedTaskData[daysDifference]++;
+      if (new Date(dueDate).getTime() - new Date(completionDate).getTime() >= 0) onTimeTaskData[daysDifference]++;
+    }
+
+  }
+
+  const labels = new Array(30).fill(0).map((_, index) => {
+    const day = new Date();
+    day.setDate(day.getDate() - index);
+    return day.toDateString();
+  });
+  return {
+    labels: labels,
+    onTimeTaskData: onTimeTaskData,
+    completedTaskData: completedTaskData,
+  };
+}
 function generateDailyReport(tasks: Task[], name: string): string {
   const currentDate = new Date();
   const past24Hours = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);

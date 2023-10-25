@@ -27,9 +27,9 @@ router.get('/tasks', async (req, res) => {
     try {
       let query = Task.find(); // Start with a basic query
   
-      if (req.query.sort === 'title') {
+      if (req.query.sort === 'alphabet') {
         query = query.sort({ name: 1 }); // Sort by task title in ascending order
-      } else if (req.query.sort === 'createdAt') {
+      } else if (req.query.sort === 'time') {
         query = query.sort({ createdAt: -1 }); // Sort by creation date in descending order (newest to oldest)
       } else {
         query = query.sort({ dueDate: 1 }); // Sort by due date in ascending order (closest first)
@@ -80,6 +80,7 @@ router.delete('/tasks/:id', async (req, res) => {
     res.status(500).send(error);
   }
 });
+
 
 // // Delete all tasks
 // router.delete('/tasks', async (req, res) => {

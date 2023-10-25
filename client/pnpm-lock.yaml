@@ -45,8 +45,8 @@ dependencies:
     specifier: ^1.5.1
     version: 1.5.1
   chart.js:
-    specifier: ^4.3.2
-    version: 4.3.2
+    specifier: ^4.4.0
+    version: 4.4.0
   class-variance-authority:
     specifier: ^0.7.0
     version: 0.7.0
@@ -112,7 +112,7 @@ dependencies:
     version: 18.2.0
   react-chartjs-2:
     specifier: ^5.2.0
-    version: 5.2.0(chart.js@4.3.2)(react@18.2.0)
+    version: 5.2.0(chart.js@4.4.0)(react@18.2.0)
   react-day-picker:
     specifier: ^8.9.1
     version: 8.9.1(date-fns@2.30.0)(react@18.2.0)
@@ -2004,8 +2004,8 @@ packages:
       supports-color: 7.2.0
     dev: false
 
-  /chart.js@4.3.2:
-    resolution: {integrity: sha512-pvQNyFOY1QmbmIr8oDORL16/FFivfxj8V26VFpFilMo4cNvkV5WXLJetDio365pd9gKUHGdirUTbqJfw8tr+Dg==}
+  /chart.js@4.4.0:
+    resolution: {integrity: sha512-vQEj6d+z0dcsKLlQvbKIMYFHd3t8W/7L2vfJIbYcfyPcRx92CsHqECpueN8qVGNlKyDcr5wBrYAYKnfu/9Q1hQ==}
     engines: {pnpm: '>=7'}
     dependencies:
       '@kurkle/color': 0.3.2
@@ -4058,13 +4058,13 @@ packages:
       unpipe: 1.0.0
     dev: false
 
-  /react-chartjs-2@5.2.0(chart.js@4.3.2)(react@18.2.0):
+  /react-chartjs-2@5.2.0(chart.js@4.4.0)(react@18.2.0):
     resolution: {integrity: sha512-98iN5aguJyVSxp5U3CblRLH67J8gkfyGNbiK3c+l1QI/G4irHMPQw44aEPmjVag+YKTyQ260NcF82GTQ3bdscA==}
     peerDependencies:
       chart.js: ^4.1.1
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
-      chart.js: 4.3.2
+      chart.js: 4.4.0
       react: 18.2.0
     dev: false
 

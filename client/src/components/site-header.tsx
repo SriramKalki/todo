@@ -9,8 +9,11 @@ import { CommandMenu } from "./ui/command-menu";
 export default function SiteHeader() {
   const { isLoaded, isSignedIn, user } = useUser();
 
-  //@ts-ignore
-  const name = user?.firstName.substring(0, 2).toUpperCase();
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
+
+  const username = user.firstName?.substring(0, 2).toUpperCase();
 
   return (
     <>
@@ -29,7 +32,7 @@ export default function SiteHeader() {
               <UserButton>
                 <Avatar>
                   <AvatarImage src={user?.profileImageUrl}></AvatarImage>
-                  <AvatarFallback>{name}</AvatarFallback>
+                  <AvatarFallback>{username}</AvatarFallback>
                 </Avatar>
               </UserButton>
             </nav>
