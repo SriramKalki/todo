@@ -7,7 +7,7 @@ var cors = require('cors')
 
 app.use(cors()) // Use this after the variable declaration
 // Connect to your MongoDB database
-mongoose.connect("mongodb+srv://sriramkalki007:kudesign@todo.yvgwwl4.mongodb.net/", {
+mongoose.connect("redacted", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
