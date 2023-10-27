@@ -36,6 +36,7 @@ router.get('/tasks', async (req, res) => {
       }
   
       const tasks = await query.exec();
+      console.log(tasks)
       res.json(tasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);

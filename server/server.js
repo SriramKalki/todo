@@ -21,6 +21,9 @@ app.get('/', (req, res) => {
     res.send('Hello, World');
   });
   
+  app.get('/memes/', (req, res) => {
+    res.send('Bye, World');
+  });  
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

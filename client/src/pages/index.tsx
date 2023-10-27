@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DatePickerDemo } from "@/components/ui/date-picker";
 import Sidebar from './Sidebar';
+import emailjs from 'emailjs-com';
 
 import {
   Table,
@@ -25,11 +26,17 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComboboxDemo } from "@/components/ui/combobox";
 import LineGraph from "@/components/LineGraph"
+
+import Confetti from 'react-confetti'
+import { EmailAddress } from "@clerk/backend";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const inter = Inter({ subsets: ["latin"] });
 
 const tasksApi = 'https://backend-11.hop.sh/api/tasks'; // Replace with the correct API route
+const options = ['alphabet', 'time', 'created'];
+
+emailjs.init('7SCcdJfF5C7p94Tnw');
 
 interface Task {
   name: string;
@@ -82,7 +89,10 @@ export default function Home() {
 
   useEffect(() => {
     if (isSignedIn) {
+      
       fetchTasks();
+      //@ts-ignore
+      sendEmail(tasks, user? user.primaryEmailAddress.toString() : "");
     }
   }, [isSignedIn, sortOption]);
 
@@ -106,11 +116,8 @@ export default function Home() {
 
   // Function to handle changes in the sorting dropdown
   
-    const handleSortChange = (newSort: string) => {
-      console.log(newSort);
-      setSortOption(newSort);
-    
-      console.log(sortOption);
+    const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSortOption(e.target.value);
       fetchTasks();
     };
     
@@ -232,7 +239,7 @@ export default function Home() {
 
   return (
     <div className="flex-1 space-y-4 p-[12rem] pt-6">
-
+      
       <div className="flex-1">
 
         <h1 className="scroll-m-20 text-2xl font-semibold tracking-tight py-4">
@@ -336,11 +343,18 @@ export default function Home() {
             </TableBody>
           </Table>
           <div className="flex space-x-2 items-center py-[60px] grid lg:grid-cols-2 sm:grid-cols-1">
-            <ComboboxDemo onChange={(newSort: string) => {
+            {/* <ComboboxDemo onChange={(newSort: string) => {
       
               handleSortChange(newSort)
-            }} />
-
+            }} /> */}
+            
+            <label>Sort By:</label>
+            <select onChange={handleSortChange} value={sortOption}>
+              <option value="">Default</option>  
+              <option value="name">Alphabetically</option>  
+              <option value="dueDate">Due Date</option>  
+            </select>
+          
             <div className="flex">
               <div className="ms-auto">
                 <Button variant={"outline"} onClick={handleGenerateReport}>
@@ -357,6 +371,19 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* <form className="contact-form" onSubmit={sendEmail}>
+      <input type="hidden" name="contact_number" />
+      <label>Name</label>
+      <input type="text" name="from_name" />
+      <label>Email</label>
+      <input type="email" name="from_email" />
+      <label>Subject</label>
+      <input type="text" name="subject" />
+      <label>Message</label>
+      <textarea name="html_message" />
+      <input type="submit" value="Send" />
+    </form> */}
     </div>
 
   );
@@ -446,4 +473,28 @@ function generateDailyReport(tasks: Task[], name: string): string {
   `;
 
   return reportText;
+}
+
+
+function sendEmail(tasks: Task[],e : string) {
+  var contactParams = {
+    from_name: "Person",
+    from_email: e,
+    message: makeMessage(tasks)
+  };
+  
+  emailjs.send('service_8zbzy54', 'template_3q8lmxu', contactParams)
+    
+}
+
+function makeMessage(tasks: Task[]){
+  var message = `Hello! \n`;
+  // @ts-ignore
+  for(const element in tasks){
+    // @ts-ignore
+    console.log("here");
+    message += `${element.name} is due on ${element.dueAt.toDateString} \n `
+  }
+
+  return message;
 }
